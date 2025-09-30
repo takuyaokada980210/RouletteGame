@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ゲームオーバー</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      text-align: center;
+      font-family: sans-serif;
+      background: #222;
+      color: #fff;
+      padding-top: 100px;
+    }
+    .gameover-container {
+      max-width: 400px;
+      margin: auto;
+      background: #333;
+      padding: 30px;
+      border-radius: 10px;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="gameover-container">
+    <h1>ゲーム敗退</h1>
+    <p id="message"></p>
+    <button onclick="exitGame()">退出する</button>
+    <button onclick="downloadHistory()">ゲーム履歴をダウンロード</button>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const msg = params.get("message");
+    if (msg) document.getElementById("message").textContent = msg;
+
+    function exitGame() {
+      fetch("/auth/logout", { method: "POST" }).catch(() => {});
+      location.href = "/"; // TOPページ（ログイン画面）へ戻る
+    }
+
+    function downloadHistory() {
+      window.location.href = "/history/download";
+    }
+  </script>
+</body>
+</html>

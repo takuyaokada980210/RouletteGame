@@ -1,0 +1,435 @@
+body { 
+    font-family: sans-serif;
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+
+    /* 茶色ベースの暗めグラデーション */
+    background: linear-gradient(135deg, #3e2723, #5d4037, #4e342e);
+}
+
+h2 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 12px;
+    line-height: 1.4;
+    background: #fff;
+    border-bottom: 2px solid #ccc;
+    z-index: 1000;
+    box-sizing: border-box;
+    height: 52px;
+
+    display: flex;              /* ← 横並びにする */
+    justify-content: space-between; 
+    align-items: center;
+}
+
+h2 span {
+    font-weight: bold;
+}
+
+.sound-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+.sound-controls input[type="range"] {
+    width: 80px; /* スライダーの長さ */
+}
+
+/* ヘッダー分だけ下にずらす */
+.container {
+    display: flex;
+    gap: 12px;
+    height: calc(100vh - 56px); /* ヘッダー分を正確に差し引き */
+    margin-top: 56px;           /* ヘッダー高さ分ずらす */
+    padding: 10px;
+    box-sizing: border-box;
+	
+	transform: scale(0.95);         /* 縮小率 (調整可能: 0.7〜0.95) */
+	transform-origin: top center;   /* 上中央を基準に縮小 */
+	align-items: stretch; /* 高さを揃える */
+}
+
+/* 左カラム：明るい緑色 */
+.left-panel {
+    flex: 3;
+    min-width: 200px;
+    overflow-y: auto;
+    height: 100%;
+    background-color: #008000;  /* 明るいグリーン */
+    padding: 10px;
+}
+
+/* 中央カラム：明るい緑色 */
+.center-panel {
+    flex: 3;
+    min-width: 200px;
+    overflow-y: auto;
+	height: 100%;   
+    background-color: #008000;  /* 明るいグリーン */
+    padding: 10px;
+}
+
+
+/* 右カラム：背景画像を全体に固定 */
+.right-panel {
+    flex: 4; 
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    overflow-y: auto;
+
+    background: url('/image/right-bg.png') no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+}
+
+.right-panel h3 {
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 2.0); /* 黒っぽい影で読みやすく */
+}
+
+/* パネルをほんのり白25%で透過 */
+.right-panel > .panel-box {
+    flex: 1;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 6px;
+    font-size: 13px;
+    overflow-y: auto;
+    box-sizing: border-box;
+
+    background-color: rgba(255, 255, 255, 0.25); /* 白25%（かなり透ける） */
+    backdrop-filter: blur(6px);                  /* 背景ぼかし */
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);      /* 軽い影で浮かせる */
+}
+
+/* 操作ボタン部分だけはスクロール対象から外す */
+.right-panel > .action-buttons {
+    flex: none;         /* 均等割りから外して高さ固定 */
+    border: 1px solid #ccc;
+    padding: 6px;
+    font-size: 13px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between; /* 横並び均等配置 */
+    gap: 8px;
+    overflow: visible;  /* ← スクロール無効化 */
+}
+
+/* 操作ボタンエリアはボタンを中央寄せ */
+/* 操作ボタンを横並び */
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    border: 1px solid #ccc;
+    padding: 6px;
+    font-size: 13px;
+    box-sizing: border-box;
+
+    /* ガラス風追加 */
+    background-color: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+.action-buttons button {
+    flex: 1;                /* 各ボタンが同じ幅になる */
+    padding: 6px;
+    font-size: 13px;
+}
+
+/* スクロールバー見やすく */
+.left-panel::-webkit-scrollbar,
+.right-panel::-webkit-scrollbar {
+    width: 8px;
+}
+.left-panel::-webkit-scrollbar-thumb,
+.right-panel::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 4px;
+}
+
+.panel-box {
+    border: 1px solid #ccc;
+    padding: 8px;
+    flex: 1;
+    overflow-y: auto;
+    font-size: 13px;
+    min-height: 150px;
+
+    /* ガラス風 */
+    background-color: rgba(255, 255, 255, 0.25); /* 白25%透過 */
+    backdrop-filter: blur(6px);                 /* 背景ぼかし */
+    -webkit-backdrop-filter: blur(6px);         /* Safari対応 */
+}
+
+
+
+#rouletteCanvas {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+#players {
+    border: 1px solid #ccc;
+    padding: 6px;
+    max-height: 120px;
+    overflow-y: auto;
+    font-size: 13px;
+}
+
+.chip-button {
+    display: inline-block;
+    width: 60px; height: 60px;
+    margin: 4px;
+    border-radius: 50%;
+    border: 2px solid #333;
+    background-size: cover; background-position: center;
+    cursor: pointer; font-weight: bold; font-size: 12px;
+    color: white; text-shadow: 1px 1px 2px black;
+    line-height: 60px; text-align: center;
+}
+.chip-100 { background-image: url('/image/chips/chip100.png'); }
+.chip-200 { background-image: url('/image/chips/chip200.png'); }
+.chip-500 { background-image: url('/image/chips/chip500.png'); }
+.chip-1000 { background-image: url('/image/chips/chip1000.png'); }
+.chip-3000 { background-image: url('/image/chips/chip3000.png'); }
+
+/* インサイドベットテーブル：3列×12行 + 0セル */
+#rouletteTable {
+    display: grid;
+    /* col=1 (外側ベット用) → ダミー間隔列 → col=2〜4 (インサイドベット) */
+    grid-template-columns: 57px 20px repeat(3, 57px);
+    grid-template-rows: 40px repeat(12, 40px) 40px;
+    gap: 1px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.num-cell {
+    width: 55px;
+    height: 38px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 38px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.num-0 {
+    grid-column: span 3; /* 横に広げる */
+    background-color: green;
+    color: white;
+}
+
+/* 2to1セル */
+.outside-cell {
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: #eee;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 38px;
+    width: 55px;     /* ← 追加すると数字セルと揃う */
+    height: 38px;
+}
+
+.num-red { background-color: red; color: white; }
+.num-black { background-color: black; color: white; }
+.num-selected { background-color: orange; color: white; }
+
+.outside-cell {
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: #eee;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 38px;
+}
+
+#history {
+    height: 150px;          /* 高さを250pxに固定 */
+    overflow-y: auto;       /* 内容が溢れたらスクロール */
+    flex: none !important;  /* flexの自動伸縮を無効化 */
+}
+
+.history-turn-card {
+    border: 1px solid #aaa; border-radius: 6px;
+    padding: 6px; margin-bottom: 8px;
+    background: #f9f9f9;
+}
+.history-turn-title { font-weight: bold; margin-bottom: 4px; }
+.history-result { color: blue; font-style: italic; }
+.history-win { color: green; font-weight: bold; }
+.history-lose { color: red; }
+
+/* タブ切り替え */
+.tab-container { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 6px; }
+.tab { flex: 1; text-align: center; padding: 6px; cursor: pointer;
+    border: 1px solid #ccc; border-bottom: none; background: #eee; }
+.tab.active { background: white; font-weight: bold; }
+.tab-content {
+    border: 1px solid #ccc;
+    padding: 8px;
+    flex: 1;
+    overflow-y: auto;
+    font-size: 13px;
+    min-height: 120px;
+
+    /* ガラス風追加 */
+    background-color: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+	
+	color: white;
+	text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* 黒影で読みやすく */
+}
+.chat-input { display: flex; gap: 6px; margin-top: 6px; }
+.chat-input input { flex: 1; padding: 6px; font-size: 13px; }
+
+/* 外側ベット：下段 */
+.outside-row {
+    grid-column: span 3;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1px;
+    margin-top: 4px;
+}
+
+.outside-bet {
+    border: 1px solid #333;
+    border-radius: 4px;
+    text-align: center;
+    padding: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    background: #eee;
+}
+.outside-bet.red { background: red; color: white; }
+.outside-bet.black { background: black; color: white; }
+
+/* 左列：縦並び外側ベット（EVEN/RED/BLACK/ODD） */
+.outside-vertical {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 均等配置 */
+    grid-column: 1;   /* 左列固定 */
+    grid-row: 2 / span 12; /* 1〜36 の高さに合わせる */
+    height: 100%; /* grid行の高さを全て使う */
+}
+
+.outside-vertical .outside-bet {
+    flex: 1;                 /* 均等に伸びる */
+    display: flex;           /* 中央寄せ */
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: #eee;
+    font-size: 12px;
+}
+
+.outside-vertical .outside-bet.red { background: red; color: white; }
+.outside-vertical .outside-bet.black { background: black; color: white; }
+
+/* 中央右列：12区間ベット（1st/2nd/3rd 12） */
+.outside-dozen {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 均等配置 */
+    grid-column: 6;
+    grid-row: 2 / span 12; /* 数字1〜36の縦範囲に揃える */
+    height: 100%; /* gridの行全体を使う */
+}
+
+.outside-dozen .outside-bet {
+    flex: 1;                 /* 均等に伸びる */
+    display: flex;
+    align-items: center;     /* 中央寄せ */
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: #eee;
+    font-size: 12px;
+}
+
+/* 右端列：High/Low ベット */
+.outside-highlow {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 均等配置 */
+    grid-column: 7;
+    grid-row: 2 / span 12; /* 数字1〜36の縦範囲に揃える */
+    height: 100%; /* gridの行全体を使う */
+}
+
+.outside-highlow .outside-bet {
+    flex: 1;                 /* 均等に伸びる */
+    display: flex;
+    align-items: center;     /* 中央寄せ */
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: #eee;
+    font-size: 12px;
+}
+
+.modal {
+    display: none;              /* 初期状態は非表示 */
+    position: fixed;
+    z-index: 2000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+
+    /* flex の設定はここでは書かない */
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+    text-align: center;
+}
+.modal-content input {
+    width: 90%;
+    padding: 6px;
+    margin: 8px 0;
+}
+
+.fixed-user-box {
+    flex: none !important;      /* ← flexの自動伸縮を無効化 */
+    min-height: auto !important; /* ← 親のmin-heightを打ち消す */
+    height: 36px !important;    /* ← 強制的に高さを固定 */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 0 8px;
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* 黒影で読みやすく */
+}

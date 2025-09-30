@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ルーレットゲーム</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+	<h2>
+	  <span>ルーレットゲーム</span>
+	  <div class="sound-controls">
+	    <!-- BGM -->
+	    <label><input type="checkbox" id="bgmToggle" checked> BGM</label>
+	    <input type="range" id="bgmVolume" min="0" max="1" step="0.01" value="0.7">
+
+	    <!-- SE -->
+	    <label style="margin-left:12px;"><input type="checkbox" id="seToggle" checked> SE</label>
+	    <input type="range" id="seVolume" min="0" max="1" step="0.01" value="0.7">
+	  </div>
+	</h2>
+
+	
+	<!-- === ログイン用モーダル === -->
+	<div id="loginModal" class="modal">
+	  <div class="modal-content">
+	    <h3>ログインしてください</h3>
+	    <input type="text" id="loginUsername" placeholder="ID">
+	    <input type="password" id="loginPassword" placeholder="パスワード">
+	    <div style="margin-top: 10px;">
+	      <button id="loginBtn">ログインする</button>
+	      <button id="showRegisterModal">アカウント新規作成</button>
+	    </div>
+	  </div>
+	</div>
+
+	<!-- === 新規登録モーダル === -->
+	<div id="registerModal" class="modal">
+	  <div class="modal-content">
+	    <h3>アカウント新規作成</h3>
+	    <input type="text" id="registerDisplayName" placeholder="表示名">
+	    <input type="text" id="registerUsername" placeholder="ID">
+	    <input type="password" id="registerPassword" placeholder="パスワード">
+	    <div style="margin-top: 10px;">
+	      <button id="registerBtn">登録する</button>
+	      <button id="cancelRegister">キャンセル</button>
+	    </div>
+	  </div>
+	</div>
+	
+    <div class="container">
+		
+        <!-- 左カラム -->
+        <div class="left-panel">
+            <h3>ルーレット</h3>
+            <canvas id="rouletteCanvas" width="500" height="500"></canvas>
+            <button id="spinButton" onclick="spin()" disabled>ルーレットを回す</button>
+
+            <h3>ベット</h3>
+            <div id="betArea">
+                <div class="chip-button chip-100" onclick="addChip(100)">$100</div>
+                <div class="chip-button chip-200" onclick="addChip(200)">$200</div>
+                <div class="chip-button chip-500" onclick="addChip(500)">$500</div>
+                <div class="chip-button chip-1000" onclick="addChip(1000)">$1000</div>
+                <div class="chip-button chip-3000" onclick="addChip(3000)">$3000</div>
+            </div>
+			
+		    <p>所持クレジット: <span id="currentCreditsDisplay">$1000</span></p>
+
+            <p>選択中のベット額: <span id="selectedBet">0</span></p>
+            <button onclick="resetBet()">リセット</button>
+        </div>
+		
+		<!-- 中央カラム（新設） -->
+		<div class="center-panel">
+		    <h3>ベットテーブル</h3>
+		    <div id="rouletteTable"></div>
+			<p>選択中のベット: <span id="selectedBets">なし</span></p>
+			<button onclick="resetBets()">選択解除</button>
+			<button onclick="confirmBet()">ベット確定</button>
+			
+		</div>
+		
+		<!-- 右カラム -->
+		<div class="right-panel">
+
+			<!-- 1段目：ログインユーザー名表示 -->
+			<div class="panel-box fixed-user-box" style="margin-bottom:10px;">
+			    <label id="loggedInUserLabel">ユーザー名: 未参加</label>
+			</div>
+
+		    <!-- 2段目：操作ボタン -->
+		    <div class="action-buttons">
+				<button onclick="logout()">ログアウト</button>
+		        <button id="restartButton" onclick="restartGame()">リスタート（ホストのみ）</button>
+		        <button onclick="downloadHistory()">履歴をダウンロード</button>
+		    </div>
+
+			<!-- 3段目：ゲーム履歴とプレイヤー一覧 横並び -->
+			<div style="display:flex; gap:12px; margin:10px 0;">
+			    <!-- ゲーム履歴 -->
+			    <div style="flex:5; display:flex; flex-direction:column;">
+			        <h3 style="margin-top:0;">ゲーム履歴</h3>
+			        <div id="history" class="panel-box" style="flex:1;"></div>
+			    </div>
+			    <!-- プレイヤー一覧 -->
+			    <div style="flex:4; display:flex; flex-direction:column;">
+			        <h3 style="margin-top:0;">プレイヤー一覧</h3>
+			        <div id="players" class="panel-box" style="flex:1; height:100%;"></div>
+			    </div>
+			</div>
+
+		    <!-- 4段目：通知・チャット -->
+		    <h3>通知・チャット</h3>
+		    <div class="tab-container">
+		        <div class="tab active" onclick="switchTab('system')">システム通知</div>
+		        <div class="tab" onclick="switchTab('chat')">チャット</div>
+		    </div>
+		    <div id="system" class="tab-content"></div>
+		    <div id="chat" class="tab-content" style="display:none;"></div>
+
+		    <div class="chat-input">
+		        <input type="text" id="message" placeholder="メッセージを入力">
+		        <button onclick="sendMessage()">送信</button>
+		    </div>
+		</div>
+
+		<!-- 結果モーダル -->
+		<div id="resultModal" class="modal">
+		  <div class="modal-content">
+		    <h3>🎲 結果</h3>
+			<p id="resultWinLose"></p>
+		    <p id="resultNumber"></p>
+		    <p id="resultColor"></p>
+		    <button onclick="closeResultModal()">OK</button>
+		  </div>
+		</div>
+		
+		<!-- === ログアウト確認モーダル === -->
+		<div id="logoutModal" class="modal">
+		  <div class="modal-content">
+		    <h3>本当にログアウトしますか？</h3>
+		    <div style="margin-top: 10px;">
+		      <button id="confirmLogout">はい</button>
+		      <button id="cancelLogout">キャンセル</button>
+		    </div>
+		  </div>
+		</div>
+		
+    <!-- 音声 -->
+    <audio id="spinSound" src="/audio/roulette-spin.mp3" preload="auto"></audio>
+    <audio id="fanfareSound" src="/audio/fanfare.mp3" preload="auto"></audio>
+	<audio id="bgm" src="/audio/casino-bgm.mp3" loop></audio>
+	
+    <script src="/js/main.js"></script>
+</body>
+</html>

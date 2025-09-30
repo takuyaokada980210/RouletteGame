@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ルーレットリプレイ</title>
+  <style>
+    .history-turn-card {
+        border: 1px solid #aaa;
+        border-radius: 6px;
+        padding: 8px;
+        margin-bottom: 10px;
+        background: #f9f9f9;
+    }
+    .history-turn-title { font-weight: bold; margin-bottom: 5px; }
+    .history-result { color: blue; font-style: italic; }
+    .history-win { color: green; font-weight: bold; }
+    .history-lose { color: red; }
+  </style>
+</head>
+<body>
+  <h2>ルーレット履歴リプレイ</h2>
+  <button onclick="loadHistory()">履歴を読み込む</button>
+  <button onclick="playReplay()">リプレイ再生</button>
+  <div id="history"></div>
+
+  <script>
+    let historyData = [];
+
+    async function loadHistory() {
+        const res = await fetch("/history/json");
+        historyData = await res.json();
+        renderHistory(historyData);
+    }
+
+    function renderHistory(history) {
+        const historyDiv = document.getElementById("history");
+        historyDiv.innerHTML = "";
+        for (let i = history.length - 1; i >= 0; i--) {
+            const round = history[i];
+            const card = document.createElement("div");
+            card.className = "history-turn-card";
+            round.forEach(item => {
+                const entry = document.createElement("div");
+                if (item.startsWith("===")) entry.className = "history-turn-title";
+                if (item.startsWith("🎲")) entry.className = "history-result";
+                if (item.startsWith("✅")) entry.className = "history-win";
+                if (item.startsWith("❌")) entry.className = "history-lose";
+                entry.innerText = item;
+                card.appendChild(entry);
+            });
+            historyDiv.appendChild(card);
+        }
+    }
+
+    async function playReplay() {
+        if (historyData.length === 0) await loadHistory();
+        const historyDiv = document.getElementById("history");
+        historyDiv.innerHTML = "";
+        // 最新ターンから逆順に1つずつ表示
+        let i = historyData.length - 1;
+        function showNext() {
+            if (i < 0) return;
+            const round = historyData[i];
+            const card = document.createElement("div");
+            card.className = "history-turn-card";
+            round.forEach(item => {
+                const entry = document.createElement("div");
+                if (item.startsWith("===")) entry.className = "history-turn-title";
+                if (item.startsWith("🎲")) entry.className = "history-result";
+                if (item.startsWith("✅")) entry.className = "history-win";
+                if (item.startsWith("❌")) entry.className = "history-lose";
+                entry.innerText = item;
+                card.appendChild(entry);
+            });
+            historyDiv.prepend(card);
+            i--;
+            setTimeout(showNext, 1500); // 1.5秒ごとに再生
+        }
+        showNext();
+    }
+  </script>
+</body>
+</html>
